@@ -2,7 +2,6 @@
 pragma solidity >=0.8.15;
 
 import '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
-import '@openzeppelin/contracts/utils/Address.sol';
 
 import '../libraries/ChainId.sol';
 import '../interfaces/external/IERC1271.sol';
@@ -72,7 +71,7 @@ abstract contract ERC721Permit is BlockTimestamp, ERC721Enumerable, IERC721Permi
         address owner = ownerOf(tokenId);
         require(spender != owner, 'ERC721Permit: approval to current owner');
 
-        if (Address.isContract(owner)) {
+        if (owner.code.length > 0) {
             require(IERC1271(owner).isValidSignature(digest, abi.encodePacked(r, s, v)) == 0x1626ba7e, 'Unauthorized');
         } else {
             address recoveredAddress = ecrecover(digest, v, r, s);
