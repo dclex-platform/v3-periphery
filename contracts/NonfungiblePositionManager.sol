@@ -181,12 +181,12 @@ contract NonfungiblePositionManager is
     }
 
     modifier isAuthorizedForToken(uint256 tokenId) {
-        require(_isApprovedOrOwner(msg.sender, tokenId), 'Not approved');
+        require(_isAuthorized(_ownerOf(tokenId), msg.sender, tokenId), 'Not approved');
         _;
     }
 
     function tokenURI(uint256 tokenId) public view override(ERC721, IERC721Metadata) returns (string memory) {
-        require(_exists(tokenId));
+        require(_ownerOf(tokenId) != address(0));
         return INonfungibleTokenPositionDescriptor(_tokenDescriptor).tokenURI(this, tokenId);
     }
 
@@ -386,13 +386,13 @@ contract NonfungiblePositionManager is
 
     /// @inheritdoc IERC721
     function getApproved(uint256 tokenId) public view override(ERC721, IERC721) returns (address) {
-        require(_exists(tokenId), 'ERC721: approved query for nonexistent token');
+        require(_ownerOf(tokenId) != address(0), 'ERC721: approved query for nonexistent token');
 
         return _positions[tokenId].operator;
     }
 
     /// @dev Overrides _approve to use the operator in the position, which is packed with the position permit nonce
-    function _approve(address to, uint256 tokenId) internal override(ERC721) {
+    function _approve(address to, uint256 tokenId, address /*auth*/, bool /*emitEvent*/) internal virtual override(ERC721) {
         _positions[tokenId].operator = to;
         emit Approval(ownerOf(tokenId), to, tokenId);
     }
