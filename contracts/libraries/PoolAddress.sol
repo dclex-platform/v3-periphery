@@ -9,11 +9,22 @@ library PoolAddress {
     // Quoter) will be wrong — the target pool has no code, `slot0()` reverts with
     // empty data, and mint/swap/quote calls silently fail.
     //
+    // Critically, the hash differs by compiler pipeline: standalone (no --via-ir)
+    // vs IR-based (--via-ir) compiles of UniswapV3Pool produce different bytecode
+    // and therefore different hashes. The value below is the --via-ir hash, which
+    // is what this repo ships (foundry.toml default + script invocations pass
+    // --via-ir). Do NOT read the hash from out/UniswapV3Pool.sol/*.json unless
+    // that artifact itself was built with --via-ir — the JSON can be stale from
+    // a prior non-IR build and silently disagree with what the factory actually
+    // deploys. Authoritative source: `forge test test/PoolInitCodeHash.t.sol
+    // --via-ir` — it reads `type(UniswapV3Pool).creationCode` from the live
+    // compile context.
+    //
     // Solidity constants are literals, so bumping v3-core or changing
-    // solc/optimizer settings requires updating this value by hand.
+    // solc/optimizer/pipeline settings requires updating this value by hand.
     // `test/PoolInitCodeHash.t.sol` guards it so CI fails loudly the next time
     // the two drift apart.
-    bytes32 internal constant POOL_INIT_CODE_HASH = 0x2076fc70544b770eebed12b5bc8c1a1c9c3f10f8a57778e553288520cfb8d4d8;
+    bytes32 internal constant POOL_INIT_CODE_HASH = 0x54488334146a9568201119ab62bd8fcc957d3c9a15289c14f66505c87d5e6b89;
 
     /// @notice The identifying key of the pool
     struct PoolKey {
