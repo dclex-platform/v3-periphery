@@ -3,7 +3,17 @@ pragma solidity >=0.5.0;
 
 /// @title Provides functions for deriving a pool address from the factory, tokens, and the fee
 library PoolAddress {
-    bytes32 internal constant POOL_INIT_CODE_HASH = 0xa598dd2fba360510c5a8f02f44423a4468e902df5857dbce3ca162a43a3a31ff;
+    // POOL_INIT_CODE_HASH must equal keccak256(type(UniswapV3Pool).creationCode)
+    // for the v3-core / solc / optimizer combination currently compiled, or every
+    // address this library derives (used by NonfungiblePositionManager, SwapRouter,
+    // Quoter) will be wrong — the target pool has no code, `slot0()` reverts with
+    // empty data, and mint/swap/quote calls silently fail.
+    //
+    // Solidity constants are literals, so bumping v3-core or changing
+    // solc/optimizer settings requires updating this value by hand.
+    // `test/PoolInitCodeHash.t.sol` guards it so CI fails loudly the next time
+    // the two drift apart.
+    bytes32 internal constant POOL_INIT_CODE_HASH = 0x2076fc70544b770eebed12b5bc8c1a1c9c3f10f8a57778e553288520cfb8d4d8;
 
     /// @notice The identifying key of the pool
     struct PoolKey {
