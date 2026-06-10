@@ -3,28 +3,13 @@ pragma solidity >=0.5.0;
 
 /// @title Provides functions for deriving a pool address from the factory, tokens, and the fee
 library PoolAddress {
-    // POOL_INIT_CODE_HASH must equal keccak256(type(UniswapV3Pool).creationCode)
-    // for the v3-core / solc / optimizer combination currently compiled, or every
-    // address this library derives (used by NonfungiblePositionManager, SwapRouter,
-    // Quoter) will be wrong — the target pool has no code, `slot0()` reverts with
-    // empty data, and mint/swap/quote calls silently fail.
-    //
-    // Critically, the hash differs by compiler pipeline: standalone (no --via-ir)
-    // vs IR-based (--via-ir) compiles of UniswapV3Pool produce different bytecode
-    // and therefore different hashes. The value below is the --via-ir hash, which
-    // is what this repo ships (foundry.toml default + script invocations pass
-    // --via-ir). Do NOT read the hash from out/UniswapV3Pool.sol/*.json unless
-    // that artifact itself was built with --via-ir — the JSON can be stale from
-    // a prior non-IR build and silently disagree with what the factory actually
-    // deploys. Authoritative source: `forge test test/PoolInitCodeHash.t.sol
-    // --via-ir` — it reads `type(UniswapV3Pool).creationCode` from the live
-    // compile context.
-    //
-    // Solidity constants are literals, so bumping v3-core or changing
-    // solc/optimizer/pipeline settings requires updating this value by hand.
-    // `test/PoolInitCodeHash.t.sol` guards it so CI fails loudly the next time
-    // the two drift apart.
-    bytes32 internal constant POOL_INIT_CODE_HASH = 0x54488334146a9568201119ab62bd8fcc957d3c9a15289c14f66505c87d5e6b89;
+    // Must equal keccak256(type(UniswapV3Pool).creationCode) for this repo's
+    // exact compile settings (solc, evm_version, optimizer_runs, via_ir,
+    // bytecodeHash, v3-core sources). Drift makes NPM/SwapRouter/Quoter
+    // derive wrong pool addresses → mint/swap/quote silently revert.
+    // Guard: dclex-periphery/test/PoolInitCodeHash.t.sol — on fail copy the
+    // actual hash from the diff into this literal.
+    bytes32 internal constant POOL_INIT_CODE_HASH = 0x8d41c56d06a0773deb3a48e9a31a361681d5efee156ab9eb31455086347228f4;
 
     /// @notice The identifying key of the pool
     struct PoolKey {
