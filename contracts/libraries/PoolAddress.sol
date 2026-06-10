@@ -3,7 +3,13 @@ pragma solidity >=0.5.0;
 
 /// @title Provides functions for deriving a pool address from the factory, tokens, and the fee
 library PoolAddress {
-    bytes32 internal constant POOL_INIT_CODE_HASH = 0xa598dd2fba360510c5a8f02f44423a4468e902df5857dbce3ca162a43a3a31ff;
+    // Must equal keccak256(type(UniswapV3Pool).creationCode) for this repo's
+    // exact compile settings (solc, evm_version, optimizer_runs, via_ir,
+    // bytecodeHash, v3-core sources). Drift makes NPM/SwapRouter/Quoter
+    // derive wrong pool addresses → mint/swap/quote silently revert.
+    // Guard: dclex-periphery/test/PoolInitCodeHash.t.sol — on fail copy the
+    // actual hash from the diff into this literal.
+    bytes32 internal constant POOL_INIT_CODE_HASH = 0x8d41c56d06a0773deb3a48e9a31a361681d5efee156ab9eb31455086347228f4;
 
     /// @notice The identifying key of the pool
     struct PoolKey {
